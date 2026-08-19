@@ -1,3 +1,4 @@
+/* eslint-disable i18next/no-literal-string */
 import { ActionCreatorWithOptionalPayload } from '@reduxjs/toolkit';
 import classNames from 'classnames';
 import useTranslation from 'next-translate/useTranslation';
@@ -6,6 +7,7 @@ import { useSelector } from 'react-redux';
 import styles from './AudioExperienceMenu.module.scss';
 import HelpText from './HelpText';
 
+import Button, { ButtonSize, ButtonVariant } from '@/dls/Button/Button';
 import Checkbox from '@/dls/Forms/Checkbox/Checkbox';
 import PopoverMenu from '@/dls/PopoverMenu/PopoverMenu';
 import Spinner from '@/dls/Spinner/Spinner';
@@ -19,6 +21,7 @@ import {
 } from '@/redux/slices/AudioPlayer/state';
 import { selectTooltipContentType } from '@/redux/slices/QuranReader/readingPreferences';
 import { logValueChange } from '@/utils/eventLogger';
+import { speakTranslationText } from '@/utils/tts';
 import PreferenceGroup from 'types/auth/PreferenceGroup';
 
 const AudioExperienceMenu = ({ onBack }) => {
@@ -89,6 +92,20 @@ const AudioExperienceMenu = ({ onBack }) => {
             onChange={onEnableTranslationAudioChange}
             disabled={isLoading}
           />
+          <div style={{ marginTop: '6px', marginLeft: '24px' }}>
+            <Button
+              size={ButtonSize.Small}
+              variant={ButtonVariant.Outlined}
+              onClick={() => {
+                speakTranslationText({
+                  text: 'In the name of Allah, the All-Merciful, the Very-Merciful.',
+                  lang: 'en',
+                });
+              }}
+            >
+              🔊 Test Speech Voice Now
+            </Button>
+          </div>
         </div>
         <div>
           <Checkbox
