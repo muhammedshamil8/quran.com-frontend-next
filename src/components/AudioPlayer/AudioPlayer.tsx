@@ -5,14 +5,17 @@ import React, { useContext, useEffect, useRef } from 'react';
 import { useSelector } from '@xstate/react';
 import classNames from 'classnames';
 import dynamic from 'next/dynamic';
+import useTranslation from 'next-translate/useTranslation';
 import { useSelector as useReduxSelector } from 'react-redux';
 
 import styles from './AudioPlayer.module.scss';
 
 import { useOnboarding } from '@/components/Onboarding/OnboardingProvider';
 import Spinner from '@/dls/Spinner/Spinner';
+import { selectEnableTranslationAudio } from '@/redux/slices/AudioPlayer/state';
 import { selectStudyModeIsOpen } from '@/redux/slices/QuranReader/studyMode';
 import { milliSecondsToSeconds } from '@/utils/datetime';
+import { speakTranslationText } from '@/utils/tts';
 import { AudioPlayerMachineContext } from 'src/xstate/AudioPlayerMachineContext';
 
 const AudioPlayerBody = dynamic(() => import('./AudioPlayerBody'), {
@@ -51,12 +54,47 @@ const getAudioPlayerDownloadProgress = (audioPlayer: HTMLAudioElement) => {
   return 0;
 };
 
+const extractAndSpeakTranslation = (
+  surah: number,
+  ayahNumber: number,
+  lang: string,
+  onDone: () => void,
+): boolean => {
+  const verseKey = `${surah}:${ayahNumber}`;
+  const verseEl =
+    document.getElementById(`verse-${verseKey}`) ||
+    document.querySelector(`[data-verse-key="${verseKey}"]`);
+  let translationText = '';
+
+  if (verseEl) {
+    const textEl = verseEl.querySelector('[class*="translationText"]') || verseEl;
+    translationText = textEl.textContent || '';
+  } else {
+    const firstTransEl = document.querySelector('[class*="translationText"]');
+    translationText = firstTransEl?.textContent || '';
+  }
+
+  translationText = translationText.replace(/\[\d+\]/g, '').trim();
+
+  if (!translationText) return false;
+
+  speakTranslationText({
+    text: translationText,
+    lang,
+    onEnd: onDone,
+    onError: onDone,
+  });
+  return true;
+};
+
 const AudioPlayer = () => {
   const audioPlayerRef = useRef<HTMLAudioElement>();
   const audioService = useContext(AudioPlayerMachineContext);
   const isVisible = useSelector(audioService, (state) => state.matches('VISIBLE'));
   const isStudyModeOpen = useReduxSelector(selectStudyModeIsOpen);
   const { isActive } = useOnboarding();
+  const isTranslationAudioEnabled = useReduxSelector(selectEnableTranslationAudio);
+  const { lang } = useTranslation('common');
 
   useEffect(() => {
     window.audioPlayerEl = audioPlayerRef.current;
@@ -82,12 +120,6 @@ const AudioPlayer = () => {
       const isAlmostEnded =
         currentTimestamp > milliSecondsToSeconds(audioDataDuration) - AUDIO_DURATION_TOLERANCE;
 
-      /**
-       * simulate onWaiting event on safari.
-       * If the audio is not in loading state already. And `currentTime` is nearby last timestamp of `buffered`
-       * trigger WAITING event.
-       */
-
       if (!isLoading && isWaiting && !isAlmostEnded) {
         audioService.send({ type: 'WAITING' });
       } else if (isLoading && !isWaiting) {
@@ -105,9 +137,17 @@ const AudioPlayer = () => {
   };
 
   const onEnded = () => {
-    audioService.send({
-      type: 'END',
-    });
+    const snapshot = audioService.getSnapshot();
+    const context = snapshot?.context;
+
+    if (isTranslationAudioEnabled && context?.surah && context?.ayahNumber) {
+      const handled = extractAndSpeakTranslation(context.surah, context.ayahNumber, lang, () =>
+        audioService.send({ type: 'END' }),
+      );
+      if (handled) return;
+    }
+
+    audioService.send({ type: 'END' });
   };
 
   const onSeeking = () => {
