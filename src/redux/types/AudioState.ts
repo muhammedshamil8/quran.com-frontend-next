@@ -23,6 +23,7 @@ type AudioState = {
   enableAutoScrolling: boolean;
   isDownloadingAudio: boolean;
   showTooltipWhenPlayingAudio: boolean;
+  enableTranslationAudio?: boolean;
   repeatSettings?: RepeatSettings;
 };
 

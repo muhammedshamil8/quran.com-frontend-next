@@ -14,6 +14,7 @@ import ChevronLeftIcon from '@/icons/chevron-left.svg';
 import {
   setEnableAutoScrolling,
   setShowTooltipWhenPlayingAudio,
+  setEnableTranslationAudio,
   selectAudioPlayerState,
 } from '@/redux/slices/AudioPlayer/state';
 import { selectTooltipContentType } from '@/redux/slices/QuranReader/readingPreferences';
@@ -28,7 +29,8 @@ const AudioExperienceMenu = ({ onBack }) => {
   } = usePersistPreferenceGroup();
 
   const audioPlayerState = useSelector(selectAudioPlayerState);
-  const { enableAutoScrolling, showTooltipWhenPlayingAudio } = audioPlayerState;
+  const { enableAutoScrolling, showTooltipWhenPlayingAudio, enableTranslationAudio } =
+    audioPlayerState;
   const showTooltipFor = useSelector(selectTooltipContentType);
 
   const onAudioSettingsChange = (
@@ -55,6 +57,11 @@ const AudioExperienceMenu = ({ onBack }) => {
     onAudioSettingsChange('showTooltipWhenPlayingAudio', newValue, setShowTooltipWhenPlayingAudio);
   };
 
+  const onEnableTranslationAudioChange = (newValue: boolean) => {
+    logValueChange('audio_settings_enable_translation_audio', !newValue, newValue);
+    onAudioSettingsChange('enableTranslationAudio', newValue, setEnableTranslationAudio);
+  };
+
   return (
     <>
       <PopoverMenu.Item shouldFlipOnRTL icon={<ChevronLeftIcon />} onClick={onBack}>
@@ -70,6 +77,16 @@ const AudioExperienceMenu = ({ onBack }) => {
             name="auto-scrolling"
             label={t('audio.auto-scroll.title')}
             onChange={onEnableAutoScrollingChange}
+            disabled={isLoading}
+          />
+        </div>
+        <div>
+          <Checkbox
+            checked={enableTranslationAudio ?? false}
+            id="translation-audio"
+            name="translation-audio"
+            label="Play Translation Audio (Speech)"
+            onChange={onEnableTranslationAudioChange}
             disabled={isLoading}
           />
         </div>

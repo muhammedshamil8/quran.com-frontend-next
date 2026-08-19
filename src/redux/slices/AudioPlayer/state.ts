@@ -16,6 +16,8 @@ export const selectIsDownloadingAudio = (state: RootState) =>
   state.audioPlayerState.isDownloadingAudio;
 export const selectShowTooltipWhenPlayingAudio = (state: RootState) =>
   state.audioPlayerState.showTooltipWhenPlayingAudio;
+export const selectEnableTranslationAudio = (state: RootState) =>
+  state.audioPlayerState.enableTranslationAudio ?? false;
 export const selectRepeatSettings = (state: RootState) => state.audioPlayerState.repeatSettings;
 
 export const audioPlayerStateSlice = createSlice({
@@ -33,6 +35,10 @@ export const audioPlayerStateSlice = createSlice({
     setShowTooltipWhenPlayingAudio: (state, action: PayloadAction<boolean>) => ({
       ...state,
       showTooltipWhenPlayingAudio: action.payload,
+    }),
+    setEnableTranslationAudio: (state, action: PayloadAction<boolean>) => ({
+      ...state,
+      enableTranslationAudio: action.payload,
     }),
     // Save repeat audio modal settings (from, to, repeatRange, etc.)
     setRepeatSettings: (state, action: PayloadAction<RepeatSettings | undefined>) => ({
@@ -85,6 +91,7 @@ export const {
   setEnableAutoScrolling,
   setIsDownloadingAudio,
   setShowTooltipWhenPlayingAudio,
+  setEnableTranslationAudio,
   setRepeatSettings,
 } = audioPlayerStateSlice.actions;
 

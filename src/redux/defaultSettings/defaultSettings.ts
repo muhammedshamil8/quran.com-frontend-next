@@ -96,6 +96,7 @@ const AUDIO_INITIAL_STATE: AudioState = {
   enableAutoScrolling: true,
   isDownloadingAudio: false,
   showTooltipWhenPlayingAudio: false,
+  enableTranslationAudio: false,
 };
 
 export const DEFAULT_XSTATE_INITIAL_STATE = {
