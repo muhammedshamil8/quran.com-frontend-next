@@ -54,6 +54,28 @@ const getAudioPlayerDownloadProgress = (audioPlayer: HTMLAudioElement) => {
   return 0;
 };
 
+const findTranslationText = (verseKey: string): string => {
+  const verseEl =
+    document.querySelector(`[data-verse-key="${verseKey}"]`) ||
+    document.querySelector(`[data-testid="verse-${verseKey}"]`);
+
+  if (verseEl) {
+    const transContainer =
+      verseEl.querySelector('[class*="verseTranslation"]') ||
+      verseEl.querySelector('[class*="verseTranslations"]') ||
+      verseEl.querySelector('[class*="translationContainer"]');
+
+    if (transContainer) {
+      return transContainer.textContent || '';
+    }
+  }
+
+  const fallbackEl =
+    document.querySelector('[class*="verseTranslation"]') ||
+    document.querySelector('[class*="translationText"]');
+  return fallbackEl?.textContent || '';
+};
+
 const extractAndSpeakTranslation = (
   surah: number,
   ayahNumber: number,
@@ -61,30 +83,26 @@ const extractAndSpeakTranslation = (
   onDone: () => void,
 ): boolean => {
   const verseKey = `${surah}:${ayahNumber}`;
-  const verseEl =
-    document.getElementById(`verse-${verseKey}`) ||
-    document.querySelector(`[data-verse-key="${verseKey}"]`);
-  let translationText = '';
+  let translationText = findTranslationText(verseKey);
 
-  if (verseEl) {
-    const textEl = verseEl.querySelector('[class*="translationText"]') || verseEl;
-    translationText = textEl.textContent || '';
-  } else {
-    const firstTransEl = document.querySelector('[class*="translationText"]');
-    translationText = firstTransEl?.textContent || '';
-  }
+  translationText = translationText
+    .replace(/\[\d+\]/g, '')
+    .replace(/[\d+]/g, '')
+    .trim();
 
-  translationText = translationText.replace(/\[\d+\]/g, '').trim();
+  // eslint-disable-next-line no-console
+  console.log('[Audio Translation TTS]', { verseKey, translationText, lang });
 
   if (!translationText) return false;
 
-  speakTranslationText({
+  const utterance = speakTranslationText({
     text: translationText,
     lang,
     onEnd: onDone,
     onError: onDone,
   });
-  return true;
+
+  return !!utterance;
 };
 
 const AudioPlayer = () => {
