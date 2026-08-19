@@ -1,7 +1,6 @@
 import { decamelizeKeys } from 'humps';
 
 import stringify from './qs-stringify';
-import { getProxiedServiceUrl, QuranFoundationService } from './url';
 
 import { Mushaf, MushafLines, QuranFont, QuranFontMushaf } from '@/types/QuranReader';
 
@@ -24,7 +23,7 @@ export const API_HOST =
  * @returns {string}
  */
 export const makeUrl = (path: string, parameters?: Record<string, unknown>): string => {
-  const baseUrl = getProxiedServiceUrl(QuranFoundationService.CONTENT, `${API_ROOT_PATH}${path}`);
+  const baseUrl = `${API_HOST}${API_ROOT_PATH}${path}`;
 
   if (!parameters) {
     return baseUrl;
